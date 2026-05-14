@@ -1,35 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [input, setInput] = useState("");
 
-  const addTask = () => {
+  const fetchTasks = async () => {
+    const response = await fetch("http://127.0.0.1:8000/tasks");
+    const data = await response.json();
+    setTasks(data);
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const addTask = async () => {
     if (input.trim() === "") return;
 
-    const newTask = {
-      text: input,
-      done: false,
-    };
+    await fetch("http://127.0.0.1:8000/tasks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text: input,
+        done: false,
+      }),
+    });
 
-    setTasks([...tasks, newTask]);
     setInput("");
-  };
-
-  const deleteTask = (indexToDelete) => {
-    setTasks(tasks.filter((_, index) => index !== indexToDelete));
-  };
-
-  const toggleTaskDone = (indexToToggle) => {
-    const updatedTasks = [...tasks];
-    updatedTasks[indexToToggle].done = !updatedTasks[indexToToggle].done;
-    setTasks(updatedTasks);
+    fetchTasks();
   };
 
   return (
     <div className="app-container">
-      <h1>My Todo App</h1>
+      <h1>Smart Task Manager</h1>
 
       <div className="input-row">
         <input
@@ -43,20 +49,11 @@ function App() {
       <p>Total tasks: {tasks.length}</p>
 
       <ul>
-        {tasks.map((task, index) => (
-          <li key={index}>
-            <span
-              className="task-text"
-              onClick={() => toggleTaskDone(index)}
-              style={{
-                textDecoration: task.done ? "line-through" : "none",
-                cursor: "pointer",
-              }}
-            >
-              {task.text}
+        {tasks.map((task) => (
+          <li key={task.id}>
+            <span className="task-text">
+              {task.text} {task.done ? "✅" : ""}
             </span>
-
-            <button onClick={() => deleteTask(index)}>❌</button>
           </li>
         ))}
       </ul>
