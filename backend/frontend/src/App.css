@@ -1,24 +1,25 @@
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
   background: #f4f6f8;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
 }
 
-#root {
-  padding: 30px;
+.stat-card strong {
+  display: block;
+  font-size: 22px;
 }
 
-.app-container {
-  max-width: 500px;
-  margin: 40px auto;
-  background: white;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-h1 {
-  margin-top: 0;
+.stat-card span {
+  font-size: 12px;
+  color: #666;
 }
 
 .input-row {
@@ -27,30 +28,19 @@ h1 {
   margin-bottom: 16px;
 }
 
+select,
 input {
-  flex: 1;
   padding: 10px;
-  font-size: 16px;
 }
 
-button {
-  padding: 10px 14px;
-  cursor: pointer;
+.task-meta {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
 }
 
-ul {
-  list-style: none;
-  padding: 0;
-}
-
-li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
-}
-
-.task-text {
-  flex: 1;
+.overdue-task {
+  background: #fff1f1;
+  padding: 10px;
+  border-radius: 8px;
 }

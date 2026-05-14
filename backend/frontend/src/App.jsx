@@ -4,75 +4,92 @@ import "./App.css";
 function App() {
   const [tasks, setTasks] = useState([]);
   const [input, setInput] = useState("");
+  const [priority, setPriority] = useState("medium");
+  const [dueDate, setDueDate] = useState("");
 
-  // Fetch tasks from backend
   const fetchTasks = async () => {
-    try {
-      const response = await fetch("http://127.0.0.1:8000/tasks");
-      const data = await response.json();
-      setTasks(data);
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-    }
+    const response = await fetch("http://127.0.0.1:8000/tasks");
+    const data = await response.json();
+    setTasks(data);
   };
 
-  // Load tasks when app starts
   useEffect(() => {
     fetchTasks();
   }, []);
 
-  // Add task
   const addTask = async () => {
     if (input.trim() === "") return;
 
-    try {
-      await fetch("http://127.0.0.1:8000/tasks", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text: input,
-          done: false,
-        }),
-      });
+    await fetch("http://127.0.0.1:8000/tasks", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text: input,
+        done: false,
+        priority,
+        due_date: dueDate || null,
+      }),
+    });
 
-      setInput("");
-      fetchTasks();
-    } catch (error) {
-      console.error("Error adding task:", error);
-    }
+    setInput("");
+    setPriority("medium");
+    setDueDate("");
+    fetchTasks();
   };
 
-  // Delete task
   const deleteTask = async (id) => {
-    try {
-      await fetch(`http://127.0.0.1:8000/tasks/${id}`, {
-        method: "DELETE",
-      });
+    await fetch(`http://127.0.0.1:8000/tasks/${id}`, {
+      method: "DELETE",
+    });
 
-      fetchTasks();
-    } catch (error) {
-      console.error("Error deleting task:", error);
-    }
+    fetchTasks();
   };
 
-  // Toggle complete
   const toggleTask = async (id) => {
-    try {
-      await fetch(`http://127.0.0.1:8000/tasks/${id}/toggle`, {
-        method: "PATCH",
-      });
+    await fetch(`http://127.0.0.1:8000/tasks/${id}/toggle`, {
+      method: "PATCH",
+    });
 
-      fetchTasks();
-    } catch (error) {
-      console.error("Error toggling task:", error);
-    }
+    fetchTasks();
   };
+
+  const isOverdue = (task) => {
+    if (!task.due_date || task.done) return false;
+
+    const today = new Date().toISOString().split("T")[0];
+    return task.due_date < today;
+  };
+
+  const completedTasks = tasks.filter((task) => task.done).length;
+  const overdueTasks = tasks.filter((task) => isOverdue(task)).length;
+  const highPriorityTasks = tasks.filter(
+    (task) => task.priority === "high" && !task.done
+  ).length;
 
   return (
     <div className="app-container">
       <h1>Smart Task Manager 🚀</h1>
+
+      <div className="stats-row">
+        <div className="stat-card">
+          <strong>{tasks.length}</strong>
+          <span>Total</span>
+        </div>
+        <div className="stat-card">
+          <strong>{completedTasks}</strong>
+          <span>Completed</span>
+        </div>
+        <div className="stat-card">
+          <strong>{overdueTasks}</strong>
+          <span>Overdue</span>
+        </div>
+        <div className="stat-card">
+          <strong>{highPriorityTasks}</strong>
+          <span>High Priority</span>
+        </div>
+      </div>
 
       <div className="input-row">
         <input
@@ -82,28 +99,44 @@ function App() {
           onChange={(e) => setInput(e.target.value)}
         />
 
+        <select value={priority} onChange={(e) => setPriority(e.target.value)}>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+
+        <input
+          type="date"
+          value={dueDate}
+          onChange={(e) => setDueDate(e.target.value)}
+        />
+
         <button onClick={addTask}>Add</button>
       </div>
 
-      <p>Total tasks: {tasks.length}</p>
-
       <ul>
         {tasks.map((task) => (
-          <li key={task.id}>
-            <span
-              className="task-text"
-              onClick={() => toggleTask(task.id)}
-              style={{
-                textDecoration: task.done ? "line-through" : "none",
-                cursor: "pointer",
-              }}
-            >
-              {task.text}
-            </span>
+          <li key={task.id} className={isOverdue(task) ? "overdue-task" : ""}>
+            <div>
+              <span
+                className="task-text"
+                onClick={() => toggleTask(task.id)}
+                style={{
+                  textDecoration: task.done ? "line-through" : "none",
+                  cursor: "pointer",
+                }}
+              >
+                {task.text}
+              </span>
 
-            <button onClick={() => deleteTask(task.id)}>
-              ❌
-            </button>
+              <div className="task-meta">
+                Priority: {task.priority}
+                {task.due_date && <> | Due: {task.due_date}</>}
+                {isOverdue(task) && <> | Overdue</>}
+              </div>
+            </div>
+
+            <button onClick={() => deleteTask(task.id)}>❌</button>
           </li>
         ))}
       </ul>

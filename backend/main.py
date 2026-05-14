@@ -21,6 +21,8 @@ app.add_middleware(
 class TaskCreate(BaseModel):
     text: str
     done: bool = False
+    priority: str = "medium"
+    due_date: str | None = None
 
 def get_db():
     db = SessionLocal()
@@ -39,7 +41,12 @@ def get_tasks(db: Session = Depends(get_db)):
 
 @app.post("/tasks")
 def add_task(task: TaskCreate, db: Session = Depends(get_db)):
-    new_task = Task(text=task.text, done=task.done)
+    new_task = Task(
+        text=task.text,
+        done=task.done,
+        priority=task.priority,
+        due_date=task.due_date,
+    )
     db.add(new_task)
     db.commit()
     db.refresh(new_task)

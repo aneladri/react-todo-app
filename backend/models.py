@@ -7,3 +7,5 @@ class Task(Base):
     id = Column(Integer, primary_key=True, index=True)
     text = Column(String, index=True)
     done = Column(Boolean, default=False)
+    priority = Column(String, default="medium")
+    due_date = Column(String, nullable=True)
