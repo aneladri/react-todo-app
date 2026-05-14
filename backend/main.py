@@ -1,6 +1,12 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from database import SessionLocal, engine
+from models import Base, Task
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
@@ -12,45 +18,54 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-tasks = [
-    {"id": 1, "text": "Learn React", "done": False},
-    {"id": 2, "text": "Build FastAPI backend", "done": False},
-]
-
-class Task(BaseModel):
+class TaskCreate(BaseModel):
     text: str
     done: bool = False
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 @app.get("/")
 def home():
-    return {"message": "Backend is running"}
+    return {"message": "Backend is running with database"}
 
 @app.get("/tasks")
-def get_tasks():
-    return tasks
+def get_tasks(db: Session = Depends(get_db)):
+    return db.query(Task).all()
 
 @app.post("/tasks")
-def add_task(task: Task):
-    new_task = {
-        "id": max([t["id"] for t in tasks], default=0) + 1,
-        "text": task.text,
-        "done": task.done,
-    }
-    tasks.append(new_task)
+def add_task(task: TaskCreate, db: Session = Depends(get_db)):
+    new_task = Task(text=task.text, done=task.done)
+    db.add(new_task)
+    db.commit()
+    db.refresh(new_task)
     return new_task
 
 @app.delete("/tasks/{task_id}")
-def delete_task(task_id: int):
-    for task in tasks:
-        if task["id"] == task_id:
-            tasks.remove(task)
-            return {"message": "Task deleted"}
-    raise HTTPException(status_code=404, detail="Task not found")
+def delete_task(task_id: int, db: Session = Depends(get_db)):
+    task = db.query(Task).filter(Task.id == task_id).first()
+
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    db.delete(task)
+    db.commit()
+
+    return {"message": "Task deleted"}
 
 @app.patch("/tasks/{task_id}/toggle")
-def toggle_task(task_id: int):
-    for task in tasks:
-        if task["id"] == task_id:
-            task["done"] = not task["done"]
-            return task
-    raise HTTPException(status_code=404, detail="Task not found")
+def toggle_task(task_id: int, db: Session = Depends(get_db)):
+    task = db.query(Task).filter(Task.id == task_id).first()
+
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    task.done = not task.done
+    db.commit()
+    db.refresh(task)
+
+    return task
