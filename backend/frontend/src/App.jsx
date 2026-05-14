@@ -8,7 +8,7 @@ function App() {
   const [dueDate, setDueDate] = useState("");
 
   const fetchTasks = async () => {
-    const response = await fetch("http://127.0.0.1:8000/tasks");
+    const response = await fetch("https://smart-task-manager-api-t40k.onrender.com/tasks");
     const data = await response.json();
     setTasks(data);
   };
@@ -20,7 +20,7 @@ function App() {
   const addTask = async () => {
     if (input.trim() === "") return;
 
-    await fetch("http://127.0.0.1:8000/tasks", {
+    await fetch("https://smart-task-manager-api-t40k.onrender.com/tasks", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -40,7 +40,7 @@ function App() {
   };
 
   const deleteTask = async (id) => {
-    await fetch(`http://127.0.0.1:8000/tasks/${id}`, {
+    await fetch(`https://smart-task-manager-api-t40k.onrender.com/tasks/${id}`, {
       method: "DELETE",
     });
 
@@ -48,7 +48,7 @@ function App() {
   };
 
   const toggleTask = async (id) => {
-    await fetch(`http://127.0.0.1:8000/tasks/${id}/toggle`, {
+    await fetch(`https://smart-task-manager-api-t40k.onrender.com/tasks/${id}/toggle`, {
       method: "PATCH",
     });
 
