@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -32,9 +32,25 @@ def get_tasks():
 @app.post("/tasks")
 def add_task(task: Task):
     new_task = {
-        "id": len(tasks) + 1,
+        "id": max([t["id"] for t in tasks], default=0) + 1,
         "text": task.text,
         "done": task.done,
     }
     tasks.append(new_task)
     return new_task
+
+@app.delete("/tasks/{task_id}")
+def delete_task(task_id: int):
+    for task in tasks:
+        if task["id"] == task_id:
+            tasks.remove(task)
+            return {"message": "Task deleted"}
+    raise HTTPException(status_code=404, detail="Task not found")
+
+@app.patch("/tasks/{task_id}/toggle")
+def toggle_task(task_id: int):
+    for task in tasks:
+        if task["id"] == task_id:
+            task["done"] = not task["done"]
+            return task
+    raise HTTPException(status_code=404, detail="Task not found")
