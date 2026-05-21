@@ -257,3 +257,21 @@ The application tracks:
 
 GitHub:
 https://github.com/aneladri
+
+
+## 🌐 Live Demo
+
+Frontend:
+https://react-todo-app-rho-opal.vercel.app
+
+Backend API:
+https://smart-task-manager-api-t40k.onrender.com/tasks
+
+## Architechture Diagram
+React Frontend (Vercel)
+        ↓
+FastAPI Backend (Render)
+        ↓
+SQLite Database
+
+## Screenshots
