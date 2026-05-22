@@ -265,7 +265,7 @@ Frontend:
 https://react-todo-app-rho-opal.vercel.app
 
 Backend API:
-https://smart-task-manager-api-t40k.onrender.com/tasks
+https://smart-task-manager-api-t40k.onrender.com/taskssma
 
 ## Architechture Diagram
 React Frontend (Vercel)

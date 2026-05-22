@@ -1,146 +1,29 @@
-import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
+import DashboardPage from "./pages/DashboardPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 import "./App.css";
 
 function App() {
-  const [tasks, setTasks] = useState([]);
-  const [input, setInput] = useState("");
-  const [priority, setPriority] = useState("medium");
-  const [dueDate, setDueDate] = useState("");
-
-  const fetchTasks = async () => {
-    const response = await fetch("https://smart-task-manager-api-t40k.onrender.com/tasks");
-    const data = await response.json();
-    setTasks(data);
-  };
-
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
-  const addTask = async () => {
-    if (input.trim() === "") return;
-
-    await fetch("https://smart-task-manager-api-t40k.onrender.com/tasks", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        text: input,
-        done: false,
-        priority,
-        due_date: dueDate || null,
-      }),
-    });
-
-    setInput("");
-    setPriority("medium");
-    setDueDate("");
-    fetchTasks();
-  };
-
-  const deleteTask = async (id) => {
-    await fetch(`https://smart-task-manager-api-t40k.onrender.com/tasks/${id}`, {
-      method: "DELETE",
-    });
-
-    fetchTasks();
-  };
-
-  const toggleTask = async (id) => {
-    await fetch(`https://smart-task-manager-api-t40k.onrender.com/tasks/${id}/toggle`, {
-      method: "PATCH",
-    });
-
-    fetchTasks();
-  };
-
-  const isOverdue = (task) => {
-    if (!task.due_date || task.done) return false;
-
-    const today = new Date().toISOString().split("T")[0];
-    return task.due_date < today;
-  };
-
-  const completedTasks = tasks.filter((task) => task.done).length;
-  const overdueTasks = tasks.filter((task) => isOverdue(task)).length;
-  const highPriorityTasks = tasks.filter(
-    (task) => task.priority === "high" && !task.done
-  ).length;
-
   return (
-    <div className="app-container">
-      <h1>Smart Task Manager 🚀</h1>
-
-      <div className="stats-row">
-        <div className="stat-card">
-          <strong>{tasks.length}</strong>
-          <span>Total</span>
-        </div>
-        <div className="stat-card">
-          <strong>{completedTasks}</strong>
-          <span>Completed</span>
-        </div>
-        <div className="stat-card">
-          <strong>{overdueTasks}</strong>
-          <span>Overdue</span>
-        </div>
-        <div className="stat-card">
-          <strong>{highPriorityTasks}</strong>
-          <span>High Priority</span>
-        </div>
-      </div>
-
-      <div className="input-row">
-        <input
-          type="text"
-          placeholder="Enter a task"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
+    <BrowserRouter>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <DashboardPage />
+            </ProtectedRoute>
+          }
         />
 
-        <select value={priority} onChange={(e) => setPriority(e.target.value)}>
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
-        </select>
-
-        <input
-          type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-        />
-
-        <button onClick={addTask}>Add</button>
-      </div>
-
-      <ul>
-        {tasks.map((task) => (
-          <li key={task.id} className={isOverdue(task) ? "overdue-task" : ""}>
-            <div>
-              <span
-                className="task-text"
-                onClick={() => toggleTask(task.id)}
-                style={{
-                  textDecoration: task.done ? "line-through" : "none",
-                  cursor: "pointer",
-                }}
-              >
-                {task.text}
-              </span>
-
-              <div className="task-meta">
-                Priority: {task.priority}
-                {task.due_date && <> | Due: {task.due_date}</>}
-                {isOverdue(task) && <> | Overdue</>}
-              </div>
-            </div>
-
-            <button onClick={() => deleteTask(task.id)}>❌</button>
-          </li>
-        ))}
-      </ul>
-    </div>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
